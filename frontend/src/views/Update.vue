@@ -6,20 +6,14 @@
 
             v-text-field(
                 label="Name"
-                v-model="name"
+                v-model="profileId"
             )
 
-            v-text-field(
-                label="Weight"
-                v-model="weight"
-            )
 
             v-text-field(
                 label="Age"
                 v-model="age"
             )
-
-         
 
             v-btn(color="success" @click="update") ยืนยันการแก้ไข
 
@@ -32,9 +26,8 @@ export default {
   name: "update",
   data() {
     return {
-      name: "",
-      weight: 0,
-      age : 0
+      profileId: "",
+      age : ""
     };
   },
   computed: {
@@ -49,8 +42,7 @@ export default {
       await vm.$store.dispatch("update", {
         id: vm.$route.params.id,
         data: {
-          name: vm.name,
-          weight: vm.weight,
+          profileId: vm.profileId,
           age: vm.age
         }
       });
@@ -61,10 +53,10 @@ export default {
   async mounted() {
     const vm = this;
 
+
     const data = await vm.$store.dispatch("get", vm.$route.params.id);
 
-    vm.name = data.name;
-    vm.weight = data.weight;
+    vm.profileId = data.profileId;
     vm.age = data.age;
   }
 };

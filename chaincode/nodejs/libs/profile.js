@@ -13,7 +13,8 @@ const profileState = {
     PROFILE_IN_TRANSIT: 2,      // Producer
     PROFILE_RECEIVED: 3,   // Retailer
     PROFILE_DELETED : 4,
-    Profile_CLOSED: 5     // Not currently used
+    PROFILE_CLOSED: 5,   // Not currently used
+    PROFILE_UPDATED: 6
 };
 
 /**
@@ -74,6 +75,10 @@ class Profile extends State {
 
     setStateToProfileClosed() {
         this.currentProfileState = profileState.PROFILE_CLOSED;
+    }
+
+    setStateToProfileUpdated() {
+        this.currentProfileState = profileState.PROFILE_UPDATED;
     }
 
     static fromBuffer(buffer) {

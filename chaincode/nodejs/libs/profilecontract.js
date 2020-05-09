@@ -88,27 +88,51 @@ class ProfileContract extends Contract {
         return profile.toBuffer();
     }
 
-   async deleteatient(ctx,patientId) {
-   
 
-    if(patientId === null){
-        return shim.error("Incorrect number of arguments. Expecting Id");
-    }
-    await ctx.stub.deleteState(patientId); 
-    console.log('patient data deleted from the ledger Succesfully..');
-    return shim.success(Buffer.from("success"));
-    
-    }
-
-    async updatePatient(ctx,patientId,name,age,weight){
-        if(patientId || name || age || weight === NULL){
-            return shim.error("Incorrect number of arguments. Expecting Id, Name, Age , Weight");
-        }
+    async updatePatient(ctx,args){
         
-        await ctx.stub.putState(patientId,Buffer.from(JSON.stringify(patientData))); 
-        console.log('patient data added To the ledger Succesfully..');
+        console.log("updatePatient executed");
 
-        return shim.success(Buffer.from("success"));
+        const profile_details = JSON.parse(args);
+        const profileId = profile_details.profileId;
+
+        console.log("incoming asset fields: " + JSON.stringify(profile_details));
+   
+        let profile =  Profile.createInstance(profileId);
+       // profile.profileId = profile_details.profileId;
+        profile.age = profile_details.age.toString();
+        //profile.price = profile_details.price.toString();
+       // profile.quantity = profile_details.quantity.toString();
+       // profile.producerId = profile_details.producerId;
+       // profile.retailerId = profile_details.retailerId;
+       // profile.modifiedBy = await this.getCurrentUserId(ctx);
+        profile.currentProfileState = ProfileStates.PROFILE_UPDATED;
+      //  profile.trackingInfo = '';
+
+        if(parseInt(profile.age) <= 0){
+          return shim.error("Age can't be negative !!");
+        }
+
+        const event_obj = profile;
+        event_obj.event_type = "updateProfile";
+
+
+        await ctx.stub.putState(profileId, profile.toBuffer());
+        console.log('profile data updated To the ledger Succesfully..');
+
+
+        try {
+            await ctx.stub.setEvent(EVENT_TYPE, event_obj.toBuffer());
+        }
+        catch (error) {
+            console.log("Error in sending event");
+        }
+        finally {
+            console.log("Attempted to send event = ", profile);
+        }
+
+
+        return profile.toBuffer();
     }
 
     async queryAllPatients(ctx) {
@@ -168,35 +192,74 @@ class ProfileContract extends Contract {
         console.log(queryString);
         // Get all orders that meet queryString criteria
         const iterator = await ctx.stub.getQueryResult(JSON.stringify(queryString));
-        const allPatients = [];
+        const allProfiles = [];
 
         // Iterate through them and build an array of JSON objects
         while (true) {
-            const patient = await iterator.next();
-            if (patient.value && patient.value.value.toString()) {
-                console.log(patient.value.value.toString('utf8'));
+            const profile = await iterator.next();
+            if (profile.value && profile.value.value.toString()) {
+                console.log(profile.value.value.toString('utf8'));
 
                 let Record;
 
                 try {
-                    Record = JSON.parse(patient.value.value.toString('utf8'));
+                    Record = JSON.parse(profile.value.value.toString('utf8'));
                 } catch (err) {
                     console.log(err);
-                    Record = patient.value.value.toString('utf8');
+                    Record = profile.value.value.toString('utf8');
                 }
 
-                // Add to array of patients
-                allPatients.push(Record);
+                // Add to array of Profiles
+                allProfiles.push(Record);
             }
 
-            if (patient.done) {
+            if (profile.done) {
                 console.log('end of data');
                 await iterator.close();
-                console.info(allPatients);
-                return allPatients;
+                console.info(allProfiles);
+                return allProfiles;
             }
         }
     }
+
+    async queryPatient(ctx, profileId) {
+        console.info('============= queryPatient ===========');
+
+        if (profileId.length < 1) {
+            throw new Error('profileId is required as input')
+        }
+
+        var profileAsBytes = await ctx.stub.getState(profileId);
+
+        //  Set an event (irrespective of whether the profile existed or not)
+        // define and set EVENT_TYPE
+        let queryEvent = {
+            type: EVENT_TYPE,
+            profileId: profileId,
+            desc: "Query profile was executed for " + profileId
+        };
+        await ctx.stub.setEvent(EVENT_TYPE, Buffer.from(JSON.stringify(queryEvent)));
+
+        if (!profileAsBytes || profileAsBytes.length === 0) {
+            throw new Error(`Error Message from queryOrder: Order with orderId = ${profileId} does not exist.`);
+        }
+
+        // Access Control:
+
+        var profile = Profile.deserialize(profileAsBytes);
+        //let userId = await this.getCurrentUserId(ctx);
+ 
+       /* if ((userId != "admin") // admin only has access as a precaution.
+            && (userId != order.producerId) // This transaction should only be invoked by
+            && (userId != order.retailerId) //     Producer, Retailer, Shipper associated with order
+            && (userId != order.shipperId))
+            throw new Error(`${userId} does not have access to the details of order ${orderId}`);*/
+
+        // Return a serialized order to caller of smart contract
+        return profileAsBytes;
+        //return order;
+    }
+
 
     async deletePatient(ctx, profileId) {
 
