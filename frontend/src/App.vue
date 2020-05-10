@@ -6,6 +6,8 @@
             v-toolbar-items
                 v-btn(text to="/") หน้าหลัก
                 v-btn(text to="/create") เพิ่มผู้ป่วย
+                v-btn(text to="/users") ผู้ใช้
+                v-btn(text to="/register") สมัครสมาชิก
 
         
         v-app

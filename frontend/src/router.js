@@ -22,6 +22,16 @@ export default new Router({
             path: '/update/:id',
             name: 'update',
             component: () => import(/* webpackChunkName: "update" */ './views/Update.vue')
+        },
+        {
+            path: '/users',
+            name: 'users',
+            component: () => import(/* webpackChunkName: "users" */ './views/Users.vue')
+        },
+        {
+            path: '/register',
+            name: 'reigster',
+            component: () => import(/* webpackChunkName: "users" */ './views/Register.vue')
         }
     ]
 })

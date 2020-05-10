@@ -29,14 +29,9 @@ export default new Vuex.Store({
             const response = await fetch(`${baseURL}/patients`)
             let patients = await response.json()
 
-            patients = patients.map(el => {
-                
-                el.timestamp = moment(el.timestamp || moment()).format('MM/DD/YYYY')
-
-                return el;
-            })
-
             state.raw_patient = patients || []
+
+            console.log(state.raw_patient)
 
             return null;
         },
@@ -87,5 +82,49 @@ export default new Vuex.Store({
             
             return newpatient
         },
+        async fetchUsers({ state }) {
+
+            const response = await fetch(`${baseURL}/users`)
+            let user = await response.json();
+            let id;
+
+            state.raw_user = user || []
+
+            
+            for(let i=0;i<user.length;i++){
+                id = user[i].id
+                const response2 = await fetch(`${baseURL}/is-user-enrolled/${id}`)
+                let enrollStatus = await response2.json()
+                user[i].enrollStatus =  enrollStatus
+            }
+
+           
+            console.log(user)
+            console.log(user.length)
+            
+            return null;
+        },
+        async fetchUser({ state } ) {
+
+            let id = 'admin';
+            const response = await fetch(`${baseURL}/users/${id}`)
+            let user = await response.json()
+
+            console.log(user)
+
+            return user;
+        },
+        async checkEnrolledUser({ state } ) {
+
+            let id = 'admin';
+
+            const response2 = await fetch(`${baseURL}/is-user-enrolled/${id}`)
+            let enrollStatus = await response2.json()
+
+            console.log(enrollStatus)
+
+            return enrollStatus;
+        }
+
     }
 })

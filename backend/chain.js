@@ -18,6 +18,14 @@ const Profile = require('../chaincode/nodejs/libs/profile');
 const SUCCESS = 0;
 const ORDER_NOT_FOUND = 2000;
 
+async function getUsernamePassword(request) {
+
+    request.username = 'admin';
+    request.password = 'adminpw';
+
+    return request;
+}
+
 async function submitTx(request, txName, ...args) {
     try {
         //  check header; get username and pwd from request
@@ -99,7 +107,6 @@ chainRouter.route('/patients').patch(function (request, response) {
 });
 
 
-
 chainRouter.route('/patients/:id').get(function (request, response) {
     submitTx(request, 'queryPatient', request.params.id)
         .then((queryPatientResponse) => {
@@ -128,5 +135,79 @@ chainRouter.route('/patients/:id').delete(function (request, response) {
                 "There was a problem in deleting order, " + request.params.id));
         });
 });
+
+
+chainRouter.route('/users').get(function (request, response) {
+    getUsernamePassword(request)
+    .then(request => {
+        utils.getAllUsers(request.username).then((result) => {
+            response.status(STATUS_SUCCESS);
+            response.send(result);
+        }, (error) => {
+            response.status(STATUS_SERVER_ERROR);
+            response.send(utils.prepareErrorResponse (error, STATUS_SERVER_ERROR,
+                "Problem getting list of users."));
+        });
+    }, ((error) => {
+        response.status(STATUS_CLIENT_ERROR);
+        response.send(utils.prepareErrorResponse(error, INVALID_HEADER,
+            "Invalid header;  User, " + request.username + " could not be enrolled."));
+    }));
+});
+
+chainRouter.route('/users/:id').get(function (request, response) {
+    //  Get admin username and pwd from request header
+    //  Only admin can call this api; this is not verified here;
+    //  Possible future enhancement
+    getUsernamePassword(request)
+        .then(request => {
+            utils.isUserEnrolled(request.params.id).then(result1 => {
+                if (result1 == true) {
+                    utils.getUser(request.params.id, request.username).then((result2) => {
+                        response.status(STATUS_SUCCESS);
+                        response.send(result2);
+                    }, (error) => {
+                        response.status(STATUS_SERVER_ERROR);
+                        response.send(utils.prepareErrorResponse(error, STATUS_SERVER_ERROR,
+                            "Could not get user details for user, " + request.params.id));
+                    });
+                } else {
+                    let error = {};
+                    response.status(STATUS_CLIENT_ERROR);
+                    response.send(utils.prepareErrorResponse(error, USER_NOT_ENROLLED,
+                        "Verify if the user is registered and enrolled."));
+                }
+            }, error => {
+                response.status(STATUS_SERVER_ERROR);
+                response.send(utils.prepareErrorResponse(error, STATUS_SERVER_ERROR,
+                    "Problem checking for user enrollment."));
+            });
+        }, ((error) => {
+            response.status(STATUS_CLIENT_ERROR);
+            response.send(utils.prepareErrorResponse(error, INVALID_HEADER,
+                "Invalid header;  User, " + request.params.id + " could not be enrolled."));
+        }));
+});
+
+chainRouter.route('/is-user-enrolled/:id').get(function (request, response) {
+    //  only admin can call this api;  But this is not verified here
+    //  get admin username and pwd from request header
+    //
+    getUsernamePassword(request)
+        .then(request => {
+            let userId = request.params.id;
+            utils.isUserEnrolled(userId).then(result => {
+                response.send(result).status(STATUS_SUCCESS);;
+            }, error => {
+                response.status(STATUS_CLIENT_ERROR);
+                response.send(utils.prepareErrorResponse(error, STATUS_CLIENT_ERROR,
+                  "Error checking enrollment for user, " + request.params.id));
+            });
+        }, ((error) => {
+            response.status(STATUS_CLIENT_ERROR);
+            response.send(utils.prepareErrorResponse(error, INVALID_HEADER,
+                "Invalid header; Error checking enrollment for user, " + request.params.id));
+        }));
+})
 
 module.exports = chainRouter;

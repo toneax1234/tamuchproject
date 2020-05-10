@@ -2,6 +2,34 @@ name: "default-svc-cluster-local-network-connection-profile"
 
 version: "1.0"
 
+client:
+
+  organization: org1
+
+  logging:
+    level: info
+  
+  cryptoconfig:
+    path: ../crypto-config
+  
+  credentialStore:
+    path: /tmp/default-svc-cluster-local-store
+  
+    cryptoStore:
+      path: /tmp/default-svc-cluster-local-msp
+    
+  BCCSP:
+    security:
+      enabled: true
+      default:
+        provider: "SW"
+      hashAlgorithm: "SHA2"
+      softVerify: true
+      level: 256
+  
+  tlsCerts:
+    systemCertPool: true
+
 
 channels:
 
@@ -45,12 +73,16 @@ organizations:
     peers:
       - peer0-org1-service
       - peer1-org1-service
+    certificateAuthorities:
+      - ca-root
   org2:
     mspid: org2
     cryptopath: peerOrganizations/org2/users/Admin@org2/msp
     peers:
       - peer0-org2-service
       - peer1-org2-service
+    certificateAuthorities:
+      - ca-root
 
 orderers:
   _default:
@@ -62,33 +94,33 @@ orderers:
       allow-insecure: false
   
   orderer0-service:
-    url: grpcs://localhost:7050
+    url: grpcs://0.0.0.0:7050
     grpcOptions:
       ssl-target-name-override: orderer0-service
       grpc-max-send-message-length: 15
     
     tlsCACerts:
-      path: /home/ta/Desktop/FabricNodejs/blockchain/crypto-config/ordererOrganizations/default.svc.cluster.local/msp/tlscacerts/ca-root-7054.pem
+      path: ../crypto-config/ordererOrganizations/default.svc.cluster.local/msp/tlscacerts/ca-root-7054.pem
 
   
   orderer1-service:
-    url: grpcs://localhost:8050
+    url: grpcs://0.0.0.0:8050
     grpcOptions:
       ssl-target-name-override: orderer1-service
       grpc-max-send-message-length: 15
     
     tlsCACerts:
-      path: /home/ta/Desktop/FabricNodejs/blockchain/crypto-config/ordererOrganizations/default.svc.cluster.local/msp/tlscacerts/ca-root-7054.pem
+      path: ../crypto-config/ordererOrganizations/default.svc.cluster.local/msp/tlscacerts/ca-root-7054.pem
 
   
   orderer2-service:
-    url: grpcs://localhost:9050
+    url: grpcs://0.0.0.0:9050
     grpcOptions:
       ssl-target-name-override: orderer2-service
       grpc-max-send-message-length: 15
     
     tlsCACerts:
-      path: /home/ta/Desktop/FabricNodejs/blockchain/crypto-config/ordererOrganizations/default.svc.cluster.local/msp/tlscacerts/ca-root-7054.pem
+      path: ../crypto-config/ordererOrganizations/default.svc.cluster.local/msp/tlscacerts/ca-root-7054.pem
 
 peers:
 
@@ -101,77 +133,50 @@ peers:
       allow-insecure: false
     
   peer0-org1-service:
-    url: grpcs://localhost:7051
+    url: grpcs://0.0.0.0:7051
     grpcOptions:
       ssl-target-name-override: peer0-org1-service
       grpc.http2.keepalive_time: 15
     
     tlsCACerts:
-      path: /home/ta/Desktop/FabricNodejs/blockchain/crypto-config/peerOrganizations/org1/msp/tlscacerts/ca-root-7054.pem
+      path: ../crypto-config/peerOrganizations/org1/msp/tlscacerts/ca-root-7054.pem
 
   peer1-org1-service:
-    url: grpcs://localhost:8051
+    url: grpcs://0.0.0.0:8051
     grpcOptions:
       ssl-target-name-override: peer1-org1-service
       grpc.http2.keepalive_time: 15
     
     tlsCACerts:
-      path: /home/ta/Desktop/FabricNodejs/blockchain/crypto-config/peerOrganizations/org1/msp/tlscacerts/ca-root-7054.pem
+      path: ../crypto-config/peerOrganizations/org1/msp/tlscacerts/ca-root-7054.pem
 
     
   peer0-org2-service:
-    url: grpcs://localhost:9051
+    url: grpcs://0.0.0.0:9051
     grpcOptions:
       ssl-target-name-override: peer0-org2-service
       grpc.http2.keepalive_time: 15
     
     tlsCACerts:
-      path: /home/ta/Desktop/FabricNodejs/blockchain/crypto-config/peerOrganizations/org2/msp/tlscacerts/ca-root-7054.pem
+      path: ../crypto-config/peerOrganizations/org2/msp/tlscacerts/ca-root-7054.pem
 
   peer1-org2-service:
-    url: grpcs://localhost:10051
+    url: grpcs://0.0.0.0:10051
     grpcOptions:
       ssl-target-name-override: peer1-org2-service
       grpc.http2.keepalive_time: 15
     
     tlsCACerts:
-      path: /home/ta/Desktop/FabricNodejs/blockchain/crypto-config/peerOrganizations/org2/msp/tlscacerts/ca-root-7054.pem
+      path: ../crypto-config/peerOrganizations/org2/msp/tlscacerts/ca-root-7054.pem
 
-entityMatchers:
-
-  peer:
-    - pattern: (\w*)peer0-org1-service(\w*)
-      urlSubstitutionExp: peer0-org1-service:7051
-      sslTargetOverrideUrlSubstitutionExp: peer0-org1-service
-      mappedHost: peer0-org1-service
-
-    - pattern: (\w*)peer1-org1-service(\w*)
-      urlSubstitutionExp: peer1-org1-service:7051
-      sslTargetOverrideUrlSubstitutionExp: peer1-org1-service
-      mappedHost: peer1-org1-service
-
-    - pattern: (\w*)peer0-org2-service(\w*)
-      urlSubstitutionExp: peer0-org2-service:7051
-      sslTargetOverrideUrlSubstitutionExp: peer0-org2-service
-      mappedHost: peer0-org2-service
-
-    - pattern: (\w*)peer1-org2-service(\w*)
-      urlSubstitutionExp: peer1-org2-service:7051
-      sslTargetOverrideUrlSubstitutionExp: peer1-org2-service
-      mappedHost: peer1-org2-service
-
-  orderer:
-    - pattern: (\w*)orderer0-service(\w*)
-      urlSubstitutionExp: orderer0-service:7050
-      sslTargetOverrideUrlSubstitutionExp: orderer0-service
-      mappedHost: orderer0-service
-
-    - pattern: (\w*)orderer1-service(\w*)
-      urlSubstitutionExp: orderer1-service:7050
-      sslTargetOverrideUrlSubstitutionExp: orderer1-service
-      mappedHost: orderer1-service
-      
-    - pattern: (\w*)orderer2-service(\w*)
-      urlSubstitutionExp: orderer2-service:7050
-      sslTargetOverrideUrlSubstitutionExp: orderer2-service
-      mappedHost: orderer2-service
+certificateAuthorities:
+  ca-root:
+    url: http://admin:adminpw@0.0.0.0:7054
+    httpOptions:
+      verify: false
+    tlsCACerts:
+      path: ../crypto-config/peerOrganizations/org1/msp/cacerts/ca.org1-cert.pem
+    registrar:
+      - enrollId: admin
+        enrollSecret: adminpw
+    caName: ca-root

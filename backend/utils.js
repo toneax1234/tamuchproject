@@ -40,6 +40,8 @@ let fileContents = fs.readFileSync(filePath, 'utf8');
 let connectionFile = yaml.safeLoad(fileContents);
 //console.log(connectionFile)
 
+
+
 utils.prepareErrorResponse = (error, code, message) => {
 
     let errorMsg;
@@ -89,12 +91,8 @@ utils.connectGatewayFromConfig = async () => {
         console.log('Connect to Fabric gateway.');
         await gateway.connect(connectionFile, { wallet: wallet, identity: userName, discovery: { enabled: true, asLocalhost: bLocalHost } });
 
-
-
         //gateway connect
        
-       
-
 
         console.log('Use network channel: ' + config.channel_name);
         network = await gateway.getNetwork(config.channel_name);
@@ -270,7 +268,7 @@ utils.setUserContext = async (userid, pwd) => {
         // Connect to gateway using application specified parameters
         console.log('Connect to Fabric gateway with userid:' + userid);
         let userGateway = new Gateway();
-        await userGateway.connect(connectionFile, { wallet: wallet, identity: userName, discovery: { enabled: true, asLocalhost: bLocalHost } });
+        await userGateway.connect(connectionFile, { wallet: wallet, identity: userid, discovery: { enabled: true, asLocalhost: bLocalHost } });
        
         network = await userGateway.getNetwork('mainchannel');
         console.log('BOOOOOOOOOOM')
@@ -297,10 +295,10 @@ utils.isUserEnrolled = async (userid) => {
 }
 
 utils.getUser = async (userid, adminIdentity) => {
-    console.log(">>>getUser...");
+    console.log(">>>getUser... as : " + adminIdentity);
     const gateway = new Gateway();
     // Connect to gateway as admin
-    await gateway.connect(connectionFile, { wallet : wallet, identity: adminIdentity, discovery: { enabled: false, asLocalhost: bLocalHost } });
+    await gateway.connect(connectionFile, { wallet: wallet, identity: adminIdentity, discovery: { enabled: false, asLocalhost: bLocalHost } });
     let client = gateway.getClient();
     let fabric_ca_client = client.getCertificateAuthority();
     let idService = fabric_ca_client.newIdentityService();
@@ -320,10 +318,12 @@ utils.getUser = async (userid, adminIdentity) => {
 }  //  end of function getUser
 
 utils.getAllUsers = async (adminIdentity) => {
+
+    console.log(">>>getAllUsers... As : "+ adminIdentity)
     const gateway = new Gateway();
 
     // Connect to gateway as admin
-    await gateway.connect(connectionFile, { wallet : wallet, identity: adminIdentity, discovery: { enabled: false, asLocalhost: bLocalHost } });
+    await gateway.connect(connectionFile, { wallet : wallet, identity: adminIdentity, discovery: { enabled: true, asLocalhost: bLocalHost } });
     let client = gateway.getClient();
     let fabric_ca_client = client.getCertificateAuthority();
     let idService = fabric_ca_client.newIdentityService();
@@ -351,7 +351,11 @@ utils.getAllUsers = async (adminIdentity) => {
                     break;
                 }
         }
-        result.push(tmp);
+
+        if(tmp.usertype.length >= 1){
+            result.push(tmp);
+        }
+        
     }
     return result;
 }  //  end of function getAllUsers
