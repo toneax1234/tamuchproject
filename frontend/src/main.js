@@ -9,7 +9,7 @@ import vuetify from './plugins/vuetify';
 Vue.config.productionTip = false
 
 
-let Bar = AdminBar;
+let Bar;
 
 let Storage = window.localStorage || 0;
 
