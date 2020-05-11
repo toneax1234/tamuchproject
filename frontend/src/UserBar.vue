@@ -2,9 +2,8 @@
   
     div
         v-toolbar
-            v-toolbar-title เว็บ
+            v-toolbar-title เว็บ User
             v-toolbar-items
-                v-btn(text to="/users") ผู้ใช้
                 v-btn(text to="/register") สมัครสมาชิก
                 v-btn(text to="/login") ล็อกอิน
 
@@ -17,7 +16,7 @@
 
 <script>
 export default {
-  name: "AdminBar",
+  name: "UserBar",
   data: () => ({
     //
   })

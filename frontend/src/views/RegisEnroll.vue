@@ -2,7 +2,7 @@
     v-form(ref='form' v-model='valid' lazy-validation='')
       v-row
         v-col(md="6" offset-md="2")
-            div สมัครสมาชิก
+
             v-text-field(
                 label="Username"
                 v-model="userid"
@@ -28,7 +28,7 @@
                 required
                 )
 
-            v-btn(color="success" @click="register" ) ยืนยันการสมัคร
+            v-btn(color="success" @click="regisenroll" ) ยืนยันการสมัคร
 
 </template>
 
@@ -36,7 +36,7 @@
 import { mapState } from "vuex";
 
 export default {
-  name: "register",
+  name: "regisenroll",
   data() {
     return {
         valid: false,
@@ -55,16 +55,15 @@ export default {
   },
   methods: {
 
-
-    async register() {
+    async regisenroll() {
       const vm = this;
-      await vm.$store.dispatch("register", {
+      await vm.$store.dispatch("regisenroll", {
         userid: vm.userid,
         password: vm.password,
         usertype : vm.usertype
       });
 
-      vm.$router.go()
+      vm.$router.push({ path: "/users" });
     }
   }
 };

@@ -26,18 +26,38 @@ export default new Vuex.Store({
 
         async fetchpatient({ state }) {
 
-            const response = await fetch(`${baseURL}/patients`)
+            let currentUser = await JSON.parse(localStorage.getItem('currentUser'))
+            
+
+            const response = await fetch(`${baseURL}/patients`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization' : `${currentUser.userid}:${currentUser.password}`
+                },
+            })
+            
             let patients = await response.json()
+
+
 
             state.raw_patient = patients || []
 
-            console.log(state.raw_patient)
+            console.log('fetch patient')
 
             return null;
         },
         async get({ state }, id) {
+            
+            let currentUser = await JSON.parse(localStorage.getItem('currentUser'))
 
-            const response = await fetch(`${baseURL}/patients/${id}`)
+            const response = await fetch(`${baseURL}/patients/${id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization' : `${currentUser.userid}:${currentUser.password}`
+                },
+            })
             let patient = await response.json()
 
             console.log(patient)
@@ -46,11 +66,14 @@ export default new Vuex.Store({
         },
         async create({ state }, new_patient) {
 
+            let currentUser = await JSON.parse(localStorage.getItem('currentUser'))
 
+          
             const response = await fetch(`${baseURL}/patients`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization' : `${currentUser.userid}:${currentUser.password}`
                 },
                 body: JSON.stringify(new_patient)
             })
@@ -61,8 +84,14 @@ export default new Vuex.Store({
         },
         async delete({ state }, id) {
 
+            let currentUser = await JSON.parse(localStorage.getItem('currentUser'))
+
             const response = await fetch(`${baseURL}/patients/${id}`, {
-                method: 'DELETE'
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization' : `${currentUser.userid}:${currentUser.password}`
+                },
             })
 
             return Promise.resolve();
@@ -70,10 +99,13 @@ export default new Vuex.Store({
 
         async update({ state }, { data }) {
 
+            let currentUser = await JSON.parse(localStorage.getItem('currentUser'))
+
             const response = await fetch(`${baseURL}/patients`, {
                 method: 'PATCH',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization' : `${currentUser.userid}:${currentUser.password}`
                 },
                 body: JSON.stringify(data)
             })
@@ -84,47 +116,128 @@ export default new Vuex.Store({
         },
         async fetchUsers({ state }) {
 
-            const response = await fetch(`${baseURL}/users`)
+            let currentUser = await JSON.parse(localStorage.getItem('currentUser'))
+
+            const response = await fetch(`${baseURL}/users`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization' : `${currentUser.userid}:${currentUser.password}`
+                },
+            })
             let user = await response.json();
             let id;
 
             state.raw_user = user || []
-
             
             for(let i=0;i<user.length;i++){
                 id = user[i].id
-                const response2 = await fetch(`${baseURL}/is-user-enrolled/${id}`)
+                const response2 = await fetch(`${baseURL}/is-user-enrolled/${id}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization' : `${currentUser.userid}:${currentUser.password}`
+                    },
+                })
                 let enrollStatus = await response2.json()
                 user[i].enrollStatus =  enrollStatus
             }
-
-           
-            console.log(user)
-            console.log(user.length)
             
             return null;
         },
         async fetchUser({ state } ) {
 
             let id = 'admin';
-            const response = await fetch(`${baseURL}/users/${id}`)
+            const response = await fetch(`${baseURL}/users/${id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization' : `${currentUser.userid}:${currentUser.password}`
+                },
+            })
             let user = await response.json()
 
             console.log(user)
 
             return user;
         },
-        async checkEnrolledUser({ state } ) {
+        async register({ state } , registerData) {
 
-            let id = 'admin';
+            console.log(registerData)
 
-            const response2 = await fetch(`${baseURL}/is-user-enrolled/${id}`)
-            let enrollStatus = await response2.json()
+            const response = await fetch(`${baseURL}/register-user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(registerData)
+            })
 
-            console.log(enrollStatus)
 
-            return enrollStatus;
+            return null;
+        },
+        async enroll({ state } , enrollData) {
+
+            const response = await fetch(`${baseURL}/enroll-user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(enrollData)
+            })
+
+            return null;
+        },
+        async regisenroll({ state } , registerData) {
+
+            
+
+            const response = await fetch(`${baseURL}/register-user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(registerData)
+            })
+
+            const response2 = await fetch(`${baseURL}/enroll-user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(registerData)
+            })
+            
+            return null;
+        },
+        async login({ state } , loginData) {
+
+            let login;
+
+            const response = await fetch(`${baseURL}/enroll-user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization' : `${loginData.userid}:${loginData.password}`
+                },
+                body: JSON.stringify(loginData)
+            }).then((result) => {
+                console.log(result.status);
+                // process response
+               if(result.status == 200){
+                   login = true
+                   return login;
+               }else{
+                   login = false
+                   return login
+               }
+            }, (error) => {
+                return null
+            });
+
+            return login;
         }
+        
 
     }
 })

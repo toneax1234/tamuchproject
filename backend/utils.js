@@ -271,7 +271,6 @@ utils.setUserContext = async (userid, pwd) => {
         await userGateway.connect(connectionFile, { wallet: wallet, identity: userid, discovery: { enabled: true, asLocalhost: bLocalHost } });
        
         network = await userGateway.getNetwork('mainchannel');
-        console.log('BOOOOOOOOOOM')
         contract = await network.getContract(config.smart_contract_name);
         
         return contract;

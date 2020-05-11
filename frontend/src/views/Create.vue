@@ -4,6 +4,7 @@
     v-row
 
         v-col(md="6" offset-md="2")
+            div เพิ่มผู้ป่วย
 
             v-text-field(
                 label="ชื่อ"

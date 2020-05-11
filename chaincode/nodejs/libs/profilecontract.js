@@ -46,6 +46,7 @@ class ProfileContract extends Contract {
        // let userType = await this.getCurrentUserType(ctx);
         console.log("addPatinet executed");
 
+
         const profile_details = JSON.parse(args);
         const profileId = profile_details.profileId;
 

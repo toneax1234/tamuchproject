@@ -2,7 +2,8 @@
     v-form(ref='form' v-model='valid' lazy-validation='')
       v-row
         v-col(md="6" offset-md="2")
-            div สมัครสมาชิก
+            div ล็อกอิน
+
             v-text-field(
                 label="Username"
                 v-model="userid"
@@ -28,7 +29,7 @@
                 required
                 )
 
-            v-btn(color="success" @click="register" ) ยืนยันการสมัคร
+            v-btn(color="success" @click="login" ) ล็อกอิน
 
 </template>
 
@@ -36,7 +37,7 @@
 import { mapState } from "vuex";
 
 export default {
-  name: "register",
+  name: "login",
   data() {
     return {
         valid: false,
@@ -55,17 +56,36 @@ export default {
   },
   methods: {
 
-
-    async register() {
+    async login() {
       const vm = this;
-      await vm.$store.dispatch("register", {
-        userid: vm.userid,
-        password: vm.password,
-        usertype : vm.usertype
+      const userid = vm.userid;
+      let usertype = vm.usertype;
+      const password = vm.password
+
+      const res = await vm.$store.dispatch("login", {
+        userid: userid,
+        password: password,
+        usertype : usertype
       });
 
-      vm.$router.go()
-    }
+        if(userid == 'admin'){
+            usertype = 'admin'
+        }
+
+        if(res == true){
+            localStorage.setItem('currentUser', JSON.stringify({
+                userid: userid,
+                password: password,
+                usertype : usertype
+            }));
+        }
+
+    
+    await vm.$router.push({ path: "/" });
+    await vm.$router.go()
+    
+   
+    },
   }
 };
 </script>

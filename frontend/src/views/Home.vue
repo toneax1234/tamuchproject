@@ -2,6 +2,7 @@
   
     v-row
         v-col(md="8" offset-md="2")
+            div รายชื่อผู้ป่วย
 
             v-data-table(
                 :headers="headers"

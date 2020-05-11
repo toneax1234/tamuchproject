@@ -7,6 +7,7 @@
             v-text-field(
                 label="Name"
                 v-model="profileId"
+                disabled
             )
 
 

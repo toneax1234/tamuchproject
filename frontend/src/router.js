@@ -30,8 +30,23 @@ export default new Router({
         },
         {
             path: '/register',
-            name: 'reigster',
+            name: 'register',
             component: () => import(/* webpackChunkName: "users" */ './views/Register.vue')
+        },
+        {
+            path: '/enroll',
+            name: 'enroll',
+            component: () => import(/* webpackChunkName: "users" */ './views/Enroll.vue')
+        },
+        {
+            path: '/regisenroll',
+            name: 'regisenroll',
+            component: () => import(/* webpackChunkName: "users" */ './views/RegisEnroll.vue')
+        },
+        {
+            path: '/login',
+            name: 'login',
+            component: () => import(/* webpackChunkName: "users" */ './views/Login.vue')
         }
     ]
 })

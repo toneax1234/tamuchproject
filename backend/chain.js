@@ -18,23 +18,58 @@ const Profile = require('../chaincode/nodejs/libs/profile');
 const SUCCESS = 0;
 const ORDER_NOT_FOUND = 2000;
 
-async function getUsernamePassword(request) {
 
+async function bypassUser(request){
+  
     request.username = 'admin';
     request.password = 'adminpw';
+
 
     return request;
 }
 
+async function getUsernamePassword(request) {
+
+    console.log("getUsernamePasswordddddd")
+
+    if (!request.headers.authorization === -1) {
+        return new Promise().reject('Missing Authorization Header');  //  status 401
+    }
+   
+    const credentials = request.headers.authorization
+
+
+
+    const [username, password] = credentials.split(':');
+
+    
+
+    if (!username || !password) {
+        return new Promise().reject('Invalid Authentication Credentials');  //  status 401
+    }
+
+    request.username = username;
+    request.password = password;
+    //request.username = 'admin';
+    //request.password = 'adminpw';
+    console.log("Auth ============= " + request.username +" ==============" + request.password)
+
+    return request;
+   
+}
+
 async function submitTx(request, txName, ...args) {
+
     try {
         //  check header; get username and pwd from request
         //  does NOT verify auth credentials
-        //await getUsernamePassword(request);
-        return utils.setUserContext('admin', 'adminpw').then((contract) => {
+        await getUsernamePassword(request);
+        return utils.setUserContext(request.username, request.password).then((contract) => {
             // Insert txName as args[0]
             args.unshift(txName);   
             args.unshift(contract);
+
+            console.log(args)
     
             // .apply applies the list entries as parameters to the called function
             return utils.submitTx.apply("unused", args)
@@ -52,8 +87,15 @@ async function submitTx(request, txName, ...args) {
     }
 }
 
+chainRouter.route('/auth').post(function (request, response) {
+    getAuth(request)
+});
+
+
 
 chainRouter.route('/patients').post(function (request, response) {
+    console.log('adddddddddddd')
+    console.log(JSON.stringify(request.body))
     submitTx(request, 'addPatient', JSON.stringify(request.body))
         .then((result) => {
             // process response
@@ -209,5 +251,61 @@ chainRouter.route('/is-user-enrolled/:id').get(function (request, response) {
                 "Invalid header; Error checking enrollment for user, " + request.params.id));
         }));
 })
+
+chainRouter.route('/register-user').post(function (request, response) {
+    try {
+        let userId = request.body.userid;
+        let userPwd = request.body.password;
+        let userType = request.body.usertype;
+
+        //  only admin can call this api;  get admin username and pwd from request header
+        bypassUser(request)
+            .then(request => {
+                //  1.  No need to call setUserContext
+                //  Fabric CA client is used for register-user;
+                //  2.  In this demo application UI, only admin sees the page "Manage Users"
+                //  So, it is assumed that only the admin has access to this api
+                //  register-user can only be called by a user with admin privileges.
+
+                utils.registerUser(userId, userPwd, userType, request.username).
+                    then((result) => {
+                        response.send(result).status(STATUS_SUCCESS);
+                    }, (error) => {
+                        response.status(STATUS_CLIENT_ERROR);
+                        response.send(utils.prepareErrorResponse(error, STATUS_CLIENT_ERROR,
+                            "User, " + userId + " could not be registered. "
+                            + "Verify if calling identity has admin privileges."));
+                    });
+            }, error => {
+                response.status(STATUS_CLIENT_ERROR);
+                response.send(utils.prepareErrorResponse(error, INVALID_HEADER,
+                    "Invalid header;  User, " + userId + " could not be registered."));
+            });
+    } catch (error) {
+        response.status(STATUS_SERVER_ERROR);
+        response.send(utils.prepareErrorResponse(error, STATUS_SERVER_ERROR,
+            "Internal server error; User, " + userId + " could not be registered."));
+    }
+});
+
+chainRouter.route('/enroll-user').post(function (request, response) {
+    let userId = request.body.userid;
+    let userPwd = request.body.password;
+    let userType = request.body.usertype;
+    //  retrieve username, password of the called from authorization header
+    bypassUser(request).then(request => {
+        utils.enrollUser(userId, userPwd, userType).then(result => {
+            response.send(result).status(STATUS_SUCCESS);
+        }, error => {
+            response.status(STATUS_CLIENT_ERROR);
+            response.send(utils.prepareErrorResponse(error, STATUS_CLIENT_ERROR,
+                "User, " + userId + " could not be enrolled. Check that user is registered."));
+        });
+    }), (error => {
+        response.status(STATUS_CLIENT_ERROR);
+        response.send(utils.prepareErrorResponse(error, INVALID_HEADER,
+            "Invalid header;  User, " + userId + " could not be enrolled."));
+    });
+});
 
 module.exports = chainRouter;
