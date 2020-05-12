@@ -44,7 +44,8 @@ export default {
    
   },
   mounted() {
-    this.$store.dispatch("fetchUsers");
+    this.$store.dispatch("fetchAllUsers");
+  
   }
 };
 </script>

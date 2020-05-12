@@ -12,23 +12,6 @@ client:
   cryptoconfig:
     path: ../crypto-config
   
-  credentialStore:
-    path: /tmp/default-svc-cluster-local-store
-  
-    cryptoStore:
-      path: /tmp/default-svc-cluster-local-msp
-    
-  BCCSP:
-    security:
-      enabled: true
-      default:
-        provider: "SW"
-      hashAlgorithm: "SHA2"
-      softVerify: true
-      level: 256
-  
-  tlsCerts:
-    systemCertPool: true
 
 
 channels:
@@ -56,15 +39,6 @@ channels:
         chaincodeQuery: true
         ledgerQuery: true
         eventSource: true
-    policies:
-      queryChannelConfig:
-        minResponses: 1
-        maxTargets: 1
-        retryOpts:
-          attempts: 5
-          initialBackoff: 1000ms
-          maxBackoff: 10s
-          backoffFactor: 2.0
 
 organizations:
   org1:
@@ -75,6 +49,8 @@ organizations:
       - peer1-org1-service
     certificateAuthorities:
       - ca-root
+    adminPrivateKey:
+      path: ../crypto-config/peerOrganizations/org1/users/Admin@org1/msp/keystore/0cda265d04a48451e002aa75595f2a5c428d309e75dec213e6efb298406dc561_sk
   org2:
     mspid: org2
     cryptopath: peerOrganizations/org2/users/Admin@org2/msp
@@ -83,6 +59,8 @@ organizations:
       - peer1-org2-service
     certificateAuthorities:
       - ca-root
+    adminPrivateKey:
+      path: ../crypto-config/peerOrganizations/org2/users/Admin@org2/msp/keystore/57a5bd4b6289514a0d4a0e1e47962cb9c1a575dd02413981430870547f4ff11c_sk
 
 orderers:
   _default:
@@ -94,7 +72,7 @@ orderers:
       allow-insecure: false
   
   orderer0-service:
-    url: grpcs://0.0.0.0:7050
+    url: grpcs://localhost:7050
     grpcOptions:
       ssl-target-name-override: orderer0-service
       grpc-max-send-message-length: 15
@@ -104,7 +82,7 @@ orderers:
 
   
   orderer1-service:
-    url: grpcs://0.0.0.0:8050
+    url: grpcs://localhost:8050
     grpcOptions:
       ssl-target-name-override: orderer1-service
       grpc-max-send-message-length: 15
@@ -114,7 +92,7 @@ orderers:
 
   
   orderer2-service:
-    url: grpcs://0.0.0.0:9050
+    url: grpcs://localhost:9050
     grpcOptions:
       ssl-target-name-override: orderer2-service
       grpc-max-send-message-length: 15
@@ -133,7 +111,7 @@ peers:
       allow-insecure: false
     
   peer0-org1-service:
-    url: grpcs://0.0.0.0:7051
+    url: grpcs://admin:adminpw@localhost:7051
     grpcOptions:
       ssl-target-name-override: peer0-org1-service
       grpc.http2.keepalive_time: 15
@@ -142,7 +120,7 @@ peers:
       path: ../crypto-config/peerOrganizations/org1/msp/tlscacerts/ca-root-7054.pem
 
   peer1-org1-service:
-    url: grpcs://0.0.0.0:8051
+    url: grpcs://admin:adminpw@localhost:8051
     grpcOptions:
       ssl-target-name-override: peer1-org1-service
       grpc.http2.keepalive_time: 15
@@ -152,7 +130,7 @@ peers:
 
     
   peer0-org2-service:
-    url: grpcs://0.0.0.0:9051
+    url: grpcs://admin:adminpw@localhost:9051
     grpcOptions:
       ssl-target-name-override: peer0-org2-service
       grpc.http2.keepalive_time: 15
@@ -161,7 +139,7 @@ peers:
       path: ../crypto-config/peerOrganizations/org2/msp/tlscacerts/ca-root-7054.pem
 
   peer1-org2-service:
-    url: grpcs://0.0.0.0:10051
+    url: grpcs://admin:adminpw@localhost:10051
     grpcOptions:
       ssl-target-name-override: peer1-org2-service
       grpc.http2.keepalive_time: 15
@@ -171,7 +149,7 @@ peers:
 
 certificateAuthorities:
   ca-root:
-    url: http://admin:adminpw@0.0.0.0:7054
+    url: http://admin:adminpw@localhost:7054
     httpOptions:
       verify: false
     tlsCACerts:
@@ -180,3 +158,5 @@ certificateAuthorities:
       - enrollId: admin
         enrollSecret: adminpw
     caName: ca-root
+
+

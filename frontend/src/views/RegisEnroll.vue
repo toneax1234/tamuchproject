@@ -63,7 +63,7 @@ export default {
         usertype : vm.usertype
       });
 
-      vm.$router.push({ path: "/users" });
+      vm.$router.push({ path: "/" });
     }
   }
 };

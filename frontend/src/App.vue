@@ -5,7 +5,7 @@
             v-toolbar-title เว็บ
             v-toolbar-items
                 v-btn(text to="/users") ผู้ใช้
-                v-btn(text to="/register") สมัครสมาชิก
+                v-btn(text to="/registerenroll") สมัครสมาชิก
                 v-btn(text to="/login") ล็อกอิน
 
         

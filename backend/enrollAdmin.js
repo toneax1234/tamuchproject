@@ -31,7 +31,7 @@ async function main() {
 
         //console.log(caName)
         // Create a new CA client for interacting with the CA.
-        const caURL = "http://0.0.0.0:7054"
+        const caURL = "http://admin:adminpw@0.0.0.0:7054"
        // console.log(caURL)
         const ca = new FabricCAServices(caURL);
        // console.log(caName)

@@ -43,9 +43,12 @@ class ProfileContract extends Contract {
 
     async addPatient(ctx,args) {
 
-       // let userType = await this.getCurrentUserType(ctx);
+        let userType = await this.getCurrentUserType(ctx);
         console.log("addPatinet executed");
 
+        if ((userType != "admin") && (userType != "doctor")){
+            throw new Error(`This user does not have access to create an order`);
+        }
 
         const profile_details = JSON.parse(args);
         const profileId = profile_details.profileId;
@@ -59,7 +62,17 @@ class ProfileContract extends Contract {
        // profile.quantity = profile_details.quantity.toString();
        // profile.producerId = profile_details.producerId;
        // profile.retailerId = profile_details.retailerId;
-       // profile.modifiedBy = await this.getCurrentUserId(ctx);
+       profile.participants = []
+        
+
+        profile.modifiedBy = await this.getCurrentUserId(ctx);
+
+        if(userType != 'admin'){
+            profile.participants.push('admin')
+        }
+
+        profile.participants.push(profile.modifiedBy)
+
         profile.currentProfileState = ProfileStates.PROFILE_CREATED;
       //  profile.trackingInfo = '';
 
@@ -91,11 +104,25 @@ class ProfileContract extends Contract {
 
 
     async updatePatient(ctx,args){
+
+        let userType = await this.getCurrentUserType(ctx);
+        
+
+        //throw new Error(profileOld.profileId)
         
         console.log("updatePatient executed");
 
+        if ((userType != "admin") && (userType != "doctor")){
+            throw new Error(`This user does not have access to create an order`);
+        }
+
         const profile_details = JSON.parse(args);
         const profileId = profile_details.profileId;
+        
+        let profileOldAsByte = await ctx.stub.getState(profileId);
+        let profileOldJSON = profileOldAsByte.toString()
+        let profileOld = JSON.parse(profileOldJSON)
+
 
         console.log("incoming asset fields: " + JSON.stringify(profile_details));
    
@@ -105,9 +132,11 @@ class ProfileContract extends Contract {
         //profile.price = profile_details.price.toString();
        // profile.quantity = profile_details.quantity.toString();
        // profile.producerId = profile_details.producerId;
-       // profile.retailerId = profile_details.retailerId;
-       // profile.modifiedBy = await this.getCurrentUserId(ctx);
+        profile.modifiedBy = await this.getCurrentUserId(ctx);
         profile.currentProfileState = ProfileStates.PROFILE_UPDATED;
+        profile.participants = []
+        profile.participants = profileOld.participants;
+
       //  profile.trackingInfo = '';
 
         if(parseInt(profile.age) <= 0){
@@ -139,55 +168,50 @@ class ProfileContract extends Contract {
     async queryAllPatients(ctx) {
         console.info('============= queryAllPatients ===========');
 
-       // let userId = await this.getCurrentUserId(ctx);
-       // let userType = await this.getCurrentUserType(ctx);
+        let userId = await this.getCurrentUserId(ctx);
+        let userType = await this.getCurrentUserType(ctx);
+        let queryString;
 
         //  For adding filters in query, usage: {"selector":{"producerId":"farm1"}}
-        let queryString = {
-            "selector": {}  //  no filter;  return all orders
-        }
+        
+        
+       /* queryString = {
+                "selector": {
+                    "participants": {
+                            "$elemMatch": {
+                                    "$in": [userId]
+                            }
+                        }
+                }  //  no filter;  return all orders
+        }*/
 
         // Access control done using query strings
-       /* switch (userType) {
-
-            case "admin":
-            case "regulator": {
-                queryString = {
-                    "selector": {}  //  no filter;  return all orders
-                }
-                break;
+        switch (userType) {
+            case "admin": {
+                    queryString = {
+                        "selector": {}
+                    }
+                    break;
             }
-            case "producer": {
+            case "doctor": {
                 queryString = {
                     "selector": {
-                        "producerId": userId
-                    }
+                        "participants": {
+                            "$elemMatch": {
+                                    "$in": [userId]
+                            }
+                        }
+                    }  //  no filter;  return all orders
                 }
                 break;
             }
-            case "shipper": {
-                queryString = {
-                    "selector": {
-                        "shipperId": userId
-                    }
-                }
-                break;
-            }
-            case "retailer": {
-                queryString = {
-                    "selector": {
-                        "retailerId": userId
-                    }
-                }
-                break;
-            }
-            case "customer": {
+            case "patient": {
                 throw new Error(`${userId} does not have access to this transaction`);
             }
             default: {
                 return [];
             }
-        }*/
+        }
 
         console.log("In queryAllPatients: queryString = ");
         console.log(queryString);
@@ -289,7 +313,17 @@ class ProfileContract extends Contract {
         await ctx.stub.deleteState(profileId); //remove the patient from chaincode state
     }
 
-   /* async getCurrentUserType(ctx) {
+    async getCurrentUserId(ctx) {
+
+        let id = [];
+        id.push(ctx.clientIdentity.getID());
+        var begin = id[0].indexOf("/CN=");
+        var end = id[0].lastIndexOf("::/C=");
+        let userid = id[0].substring(begin + 4, end);
+        return userid;
+    }
+
+    async getCurrentUserType(ctx) {
 
         let userid = await this.getCurrentUserId(ctx);
 
@@ -299,7 +333,7 @@ class ProfileContract extends Contract {
             return userid;
         }
         return ctx.clientIdentity.getAttributeValue("usertype");
-    }*/
+    }
 }
 
 module.exports= ProfileContract;

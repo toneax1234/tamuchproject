@@ -78,13 +78,11 @@ export default {
                 password: password,
                 usertype : usertype
             }));
+            await vm.$router.push({ path: "/" });
+            await vm.$router.go()
+        }else{
+            await vm.$router.push({ path: "/register" });
         }
-
-    
-    await vm.$router.push({ path: "/" });
-    await vm.$router.go()
-    
-   
     },
   }
 };

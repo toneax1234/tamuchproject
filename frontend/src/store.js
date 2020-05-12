@@ -43,8 +43,6 @@ export default new Vuex.Store({
 
             state.raw_patient = patients || []
 
-            console.log('fetch patient')
-
             return null;
         },
         async get({ state }, id) {
@@ -60,13 +58,30 @@ export default new Vuex.Store({
             })
             let patient = await response.json()
 
-            console.log(patient)
 
             return patient;
         },
         async create({ state }, new_patient) {
 
             let currentUser = await JSON.parse(localStorage.getItem('currentUser'))
+            let id = new_patient.profileId
+
+            
+
+            let user_exist =  await fetch(`${baseURL}/is-user-enrolled/${id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization' : `${currentUser.userid}:${currentUser.password}`
+                },
+            })
+
+            user_exist =  await user_exist.json()
+
+
+            if(user_exist != true){
+                return null
+            }
 
           
             const response = await fetch(`${baseURL}/patients`, {
@@ -80,7 +95,7 @@ export default new Vuex.Store({
 
             let newpatient = response.json()
 
-            return newpatient
+            return new_patient
         },
         async delete({ state }, id) {
 
@@ -114,34 +129,40 @@ export default new Vuex.Store({
             
             return newpatient
         },
-        async fetchUsers({ state }) {
+        async fetchAllUsers({ state }) {
 
-            let currentUser = await JSON.parse(localStorage.getItem('currentUser'))
+           let currentUser = await JSON.parse(localStorage.getItem('currentUser'))
+           let id;
 
-            const response = await fetch(`${baseURL}/users`, {
+            let response = await fetch(`${baseURL}/users`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization' : `${currentUser.userid}:${currentUser.password}`
                 },
             })
-            let user = await response.json();
-            let id;
 
-            state.raw_user = user || []
+            let user = await response.json()
+
+        
+            
             
             for(let i=0;i<user.length;i++){
                 id = user[i].id
-                const response2 = await fetch(`${baseURL}/is-user-enrolled/${id}`, {
+                const response2 =  await fetch(`${baseURL}/is-user-enrolled/${id}`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization' : `${currentUser.userid}:${currentUser.password}`
                     },
                 })
-                let enrollStatus = await response2.json()
+                let enrollStatus =  await response2.json()
                 user[i].enrollStatus =  enrollStatus
             }
+            
+            //user = await user.json();
+            state.raw_user = user || []
+            
             
             return null;
         },
@@ -157,13 +178,13 @@ export default new Vuex.Store({
             })
             let user = await response.json()
 
-            console.log(user)
 
             return user;
         },
         async register({ state } , registerData) {
 
-            console.log(registerData)
+
+            
 
             const response = await fetch(`${baseURL}/register-user`, {
                 method: 'POST',
@@ -222,7 +243,6 @@ export default new Vuex.Store({
                 },
                 body: JSON.stringify(loginData)
             }).then((result) => {
-                console.log(result.status);
                 // process response
                if(result.status == 200){
                    login = true

@@ -30,7 +30,6 @@ async function bypassUser(request){
 
 async function getUsernamePassword(request) {
 
-    console.log("getUsernamePasswordddddd")
 
     if (!request.headers.authorization === -1) {
         return new Promise().reject('Missing Authorization Header');  //  status 401
@@ -52,7 +51,6 @@ async function getUsernamePassword(request) {
     request.password = password;
     //request.username = 'admin';
     //request.password = 'adminpw';
-    console.log("Auth ============= " + request.username +" ==============" + request.password)
 
     return request;
    
@@ -69,7 +67,6 @@ async function submitTx(request, txName, ...args) {
             args.unshift(txName);   
             args.unshift(contract);
 
-            console.log(args)
     
             // .apply applies the list entries as parameters to the called function
             return utils.submitTx.apply("unused", args)
@@ -94,8 +91,7 @@ chainRouter.route('/auth').post(function (request, response) {
 
 
 chainRouter.route('/patients').post(function (request, response) {
-    console.log('adddddddddddd')
-    console.log(JSON.stringify(request.body))
+
     submitTx(request, 'addPatient', JSON.stringify(request.body))
         .then((result) => {
             // process response

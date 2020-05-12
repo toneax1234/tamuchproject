@@ -15,7 +15,6 @@ let Storage = window.localStorage || 0;
 
 let currentUser = {}
 
-console.log(Storage)
 
 
 currentUser = JSON.parse(localStorage.getItem('currentUser'))

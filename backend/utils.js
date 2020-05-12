@@ -89,7 +89,7 @@ utils.connectGatewayFromConfig = async () => {
 
         // Connect to gateway using application specified parameters
         console.log('Connect to Fabric gateway.');
-        await gateway.connect(connectionFile, { wallet: wallet, identity: userName, discovery: { enabled: true, asLocalhost: bLocalHost } });
+        await gateway.connect(connectionFile, { wallet: wallet, identity: userName, discovery: { enabled: false, asLocalhost: bLocalHost } });
 
         //gateway connect
        
@@ -118,6 +118,7 @@ utils.events = async () => {
     console.log('get even from channel : ' + config.channel_name)
     var channel = client.getChannel(config.channel_name);
     var peers = channel.getChannelPeers();
+   // console.log(peers)
     if (peers.length == 0) {
         throw new Error("Error after call to channel.getChannelPeers(): Channel has no peers !");
     }
@@ -125,6 +126,8 @@ utils.events = async () => {
     console.log("Connecting to event hub..." + peers[0].getName());
     //  Assuming that we want to connect to the first peer in the peers list
     var channel_event_hub = channel.getChannelEventHub(peers[0].getName());
+
+   // console.log(channel_event_hub)
 
     // to see the event payload, use 'true' in the call to channel_event_hub.connect(boolean)
     channel_event_hub.connect(true);
@@ -198,7 +201,7 @@ utils.registerUser = async (userid, userpwd, usertype, adminIdentity) => {
                 "value": usertype,
                 "ecert": true
             }],
-        maxEnrollments: 5
+        maxEnrollments: -1
     };
 
     //  Register is done using admin signing authority
@@ -268,11 +271,13 @@ utils.setUserContext = async (userid, pwd) => {
         // Connect to gateway using application specified parameters
         console.log('Connect to Fabric gateway with userid:' + userid);
         let userGateway = new Gateway();
-        await userGateway.connect(connectionFile, { wallet: wallet, identity: userid, discovery: { enabled: true, asLocalhost: bLocalHost } });
+        await userGateway.connect(connectionFile, { wallet: wallet, identity: userid, discovery: { enabled: true, asLocalhost: true } });
        
         network = await userGateway.getNetwork('mainchannel');
+        console.log('yoooooooooooooooooooooooooooooooooooooooo')
         contract = await network.getContract(config.smart_contract_name);
         
+       
         return contract;
     }
     catch (error) { throw (error); }
