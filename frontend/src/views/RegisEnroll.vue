@@ -65,6 +65,12 @@ export default {
 
       vm.$router.push({ path: "/" });
     }
+  },
+  computed: {
+     
+  },
+  mounted(){
+    const vm = this;
   }
 };
 </script>

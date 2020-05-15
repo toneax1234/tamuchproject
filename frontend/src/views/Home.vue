@@ -27,7 +27,7 @@ export default {
   data() {
     return {
       headers: [
-        { text: "ID", value: "profileId" },
+       
         { text: "ชื่อ", value: "profileId" },
         { text: "อายุ", value: "age" },
         { text: "", value: "idl" }

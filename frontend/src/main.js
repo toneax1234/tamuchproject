@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import AdminBar from './AdminBar.vue'
 import DoctorBar from './DoctorBar.vue'
+import PatientBar from './PatientBar.vue'
 import UserBar from './UserBar.vue'
 import router from './router'
 import store from './store'
@@ -23,6 +24,9 @@ if(currentUser != null){
         Bar = AdminBar;
     }else if(currentUser.usertype == 'doctor'){
         Bar = DoctorBar;
+    }
+    else if(currentUser.usertype == 'patient'){
+        Bar = PatientBar;
     }else{
         Bar = UserBar;
     }

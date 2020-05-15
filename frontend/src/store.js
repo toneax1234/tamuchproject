@@ -39,6 +39,7 @@ export default new Vuex.Store({
             
             let patients = await response.json()
 
+            console.log(patients)
 
 
             state.raw_patient = patients || []

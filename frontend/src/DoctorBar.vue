@@ -2,13 +2,13 @@
   
     div
         v-toolbar
-            v-toolbar-title เว็บ Doctor
+            v-toolbar-title โรงพยาบาล A
             v-toolbar-items
                 v-btn(text to="/") หน้าหลัก
                 v-btn(text to="/create") เพิ่มผู้ป่วย
                 v-btn(text to="/regisenroll") สมัครสมาชิก
                 v-btn(text @click="logout") logout
-
+            v-toolbar-title Doctor
         
         v-app
             v-container(fluid)

@@ -1,6 +1,7 @@
 'use strict';
 const { Contract, Context} = require('fabric-contract-api');
 const shim = require('fabric-shim');
+const ClientIdentity = require('fabric-shim').ClientIdentity;
 const Profile = require('./profile.js');
 const ProfileStates = require('./profile.js').profileStates;
 const EVENT_TYPE = "bcpocevent";
@@ -44,6 +45,13 @@ class ProfileContract extends Contract {
     async addPatient(ctx,args) {
 
         let userType = await this.getCurrentUserType(ctx);
+
+
+        
+
+        const cid = new ClientIdentity(ctx.stub);
+        const org = await cid.getMSPID();
+
         console.log("addPatinet executed");
 
         if ((userType != "admin") && (userType != "doctor")){
@@ -56,13 +64,10 @@ class ProfileContract extends Contract {
         console.log("incoming asset fields: " + JSON.stringify(profile_details));
    
         let profile =  Profile.createInstance(profileId);
-       // profile.profileId = profile_details.profileId;
         profile.age = profile_details.age.toString();
-        //profile.price = profile_details.price.toString();
-       // profile.quantity = profile_details.quantity.toString();
-       // profile.producerId = profile_details.producerId;
-       // profile.retailerId = profile_details.retailerId;
-       profile.participants = []
+        profile.participants = []
+        profile.org = []
+        profile.org.push(org)
         
 
         profile.modifiedBy = await this.getCurrentUserId(ctx);
@@ -74,7 +79,6 @@ class ProfileContract extends Contract {
         profile.participants.push(profile.modifiedBy)
 
         profile.currentProfileState = ProfileStates.PROFILE_CREATED;
-      //  profile.trackingInfo = '';
 
         if(parseInt(profile.age) <= 0){
           return shim.error("Age can't be negative !!");
@@ -106,9 +110,8 @@ class ProfileContract extends Contract {
     async updatePatient(ctx,args){
 
         let userType = await this.getCurrentUserType(ctx);
-        
 
-        //throw new Error(profileOld.profileId)
+        
         
         console.log("updatePatient executed");
 
@@ -127,17 +130,14 @@ class ProfileContract extends Contract {
         console.log("incoming asset fields: " + JSON.stringify(profile_details));
    
         let profile =  Profile.createInstance(profileId);
-       // profile.profileId = profile_details.profileId;
         profile.age = profile_details.age.toString();
-        //profile.price = profile_details.price.toString();
-       // profile.quantity = profile_details.quantity.toString();
-       // profile.producerId = profile_details.producerId;
+        profile.org = []
+        profile.org = profileOld.org;
         profile.modifiedBy = await this.getCurrentUserId(ctx);
         profile.currentProfileState = ProfileStates.PROFILE_UPDATED;
         profile.participants = []
         profile.participants = profileOld.participants;
 
-      //  profile.trackingInfo = '';
 
         if(parseInt(profile.age) <= 0){
           return shim.error("Age can't be negative !!");
@@ -168,9 +168,15 @@ class ProfileContract extends Contract {
     async queryAllPatients(ctx) {
         console.info('============= queryAllPatients ===========');
 
+        const cid = new ClientIdentity(ctx.stub);
+        const org = await cid.getMSPID();
+
         let userId = await this.getCurrentUserId(ctx);
         let userType = await this.getCurrentUserType(ctx);
+        
         let queryString;
+
+
 
         //  For adding filters in query, usage: {"selector":{"producerId":"farm1"}}
         
@@ -187,27 +193,47 @@ class ProfileContract extends Contract {
 
         // Access control done using query strings
         switch (userType) {
+            case "patient": {
+                queryString = {
+                    "selector": {
+                        "profileId": userId
+                    }
+                 } //  no filter;  return all orders
+                 break;
+            }    
             case "admin": {
                     queryString = {
-                        "selector": {}
+                        "selector": {
+                            "org": {
+                                "$elemMatch": {
+                                    "$in": [org]
+                                }
+                            }
+                        }
                     }
                     break;
             }
             case "doctor": {
                 queryString = {
-                    "selector": {
+                    "selector" : {
+                    "$and" : [
+                        {
                         "participants": {
                             "$elemMatch": {
                                     "$in": [userId]
                             }
+                        },
+                        "org": {
+                            "$elemMatch": {
+                                    "$in": [org]
+                            }
                         }
-                    }  //  no filter;  return all orders
+                     }
+                  ]  //  no filter;  return all orders
+                }
                 }
                 break;
-            }
-            case "patient": {
-                throw new Error(`${userId} does not have access to this transaction`);
-            }
+            }  
             default: {
                 return [];
             }

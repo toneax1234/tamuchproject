@@ -22,9 +22,7 @@ let connectionFile = yaml.safeLoad(fileContents);
 // create car transaction
 exports.addPateint = async function(id, name, age, weight) {
     try {
-
         var response = {};
-
         // Create a new file system based wallet for managing identities.
         const walletPath = path.join(process.cwd(), '/wallet');
         const wallet = new FileSystemWallet(walletPath);
